@@ -2,9 +2,13 @@ var $timerSetupForm = document.querySelector("#timer-setup");
 var $countdownContainer = document.querySelector("#countdown");
 var $countdown = document.querySelector(".display");
 var $cancelCountdown = document.querySelector(".cancel");
+const TIME_UP_MUSIC = "fox.mp3";
+var $audio = new Audio(TIME_UP_MUSIC);
+var warned = false;
+var crazy = false;
 
-var minutes = 15;
-var seconds = 0;
+var minutes = 0;
+var seconds = 5;
 var upwards = true;
 var countDown;
 var blinker;
@@ -37,7 +41,7 @@ function beginCountdown(minutes, seconds) {
 	var initialMinutes = minutes;
 	var initialSeconds = seconds;
 	var secondsElapsed = 0;
-	var warned = false;
+	
 
 	return setInterval(function() {
 		secondsElapsed++;
@@ -63,12 +67,15 @@ function beginCountdown(minutes, seconds) {
 		$countdownContainer.style.backgroundColor = "rgba(255, 0, 0, " + (secondsElapsed / totalSeconds) * (secondsElapsed / totalSeconds) + ")"
 
 		if (secondsElapsed / totalSeconds >= 0.8 && !warned) {
-			beep(200, 1);
+			beep();
 			warned = true;
 		}
 
 		if (secondsElapsed >= totalSeconds) {
-			beep(200, 2);
+			if(!crazy){
+				beep();
+				crazy = true;
+			}
 			done = true;
 			if (!blinker) blinker = blink($countdown, 400);
 
@@ -89,6 +96,8 @@ function cancelCountdown() {
 	$timerSetupForm.style.left = 0;
 	$countdownContainer.style.left = -10000;
 	$countdown.innerHTML = "00:00";
+	warned = false;
+	crazy = false;
 }
 
 function zeroPad(number, numLength) {
@@ -110,37 +119,10 @@ function blink(element, speed) {
 	}, speed)
 }
 
-var beep = (function () {
-	var webaudio = window.audioContext || window.webkitAudioContext;
+function beep() {
+	console.log("beep");
+	$audio.play();
+	setTimeout(function(){$audio.pause();},5000);
+}
 
-	if (webaudio) {
-		var ctx = new webaudio;
-
-		return function (duration, type, finishedCallback) {
-
-			duration = +duration;
-
-			// Only 0-4 are valid types.
-			type = (type % 5) || 0;
-
-			if (typeof finishedCallback != "function") {
-				finishedCallback = function () {};
-			}
-
-			var osc = ctx.createOscillator();
-
-			osc.type = type;
-
-			osc.connect(ctx.destination);
-			osc.noteOn(0);
-
-			setTimeout(function () {
-				osc.noteOff(0);
-				finishedCallback();
-			}, duration);
-		};
-	} else {
-		return function() {};
-	}
-})();
 
