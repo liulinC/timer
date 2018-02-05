@@ -4,7 +4,7 @@
         "type": "once",
 	"trigger":-30,
         "duration": 5,
-        "location": "beep.mp3"
+        "location": "sounds/beep.mp3"
     },
     {
         "name": "timeup",
@@ -12,6 +12,6 @@
 	"trigger":0,
         "duration": 5,
         "interval": 10,
-	"location":"godsplan.mp3"
+	"location":"sounds/godsplan.mp3"
     }
 ]
