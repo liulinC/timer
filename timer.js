@@ -12,6 +12,40 @@ var seconds = 5;
 var upwards = true;
 var countDown;
 var blinker;
+var config = [];
+
+function dumpConfig(){
+	console.log("dump config");
+	config.forEach(function(item){
+		console.log(item);	
+	});
+
+}
+
+function loadConfig(){
+  $.ajax({
+		dataType:"json",
+		url:"config.json",
+		async:false,
+	})
+	.done(function(data){
+			data.forEach(function(item){
+				console.log("adding item: "+item);
+				config.push(item);	
+			});
+		console.log("loading json file successed");
+		})
+	.fail(function(){
+			console.log("failed to load config file");
+	});
+	initConfig();
+}
+
+function initConfig(){
+	config.forEach(function(item){
+		item.triggered = false;	
+	});
+}
 
 $timerSetupForm.onsubmit = function() {
 	minutes = Number(document.querySelector("#minutes").value);
@@ -24,11 +58,24 @@ $timerSetupForm.onsubmit = function() {
 		upwards = false;
 		$countdown.innerHTML = zeroPad(minutes, 2) + ":" + zeroPad(seconds, 2);
 	}
+	loadConfig();
 	
 	countDown = beginCountdown(minutes, seconds);
 	return false;
 }
 
+function checkTrigger(secondsElapsed,totalSeconds){
+	config.forEach(function(item){
+		
+		//Check each config item, trigger accordingly	
+		var checkTimePoint = item.trigger	+ totalSeconds;
+
+		if(secondsElapsed >= checkTimePoint){
+			beep(item);
+		}
+		
+	});
+}
 $cancelCountdown.onclick = cancelCountdown;
 
 function beginCountdown(minutes, seconds) {
@@ -42,7 +89,6 @@ function beginCountdown(minutes, seconds) {
 	var initialSeconds = seconds;
 	var secondsElapsed = 0;
 	
-
 	return setInterval(function() {
 		secondsElapsed++;
 		secondsRemaining--;
@@ -59,27 +105,14 @@ function beginCountdown(minutes, seconds) {
 				seconds = secondsSinceEnd - (minutes * 60);
 			}
 		}
-		//if (upwards) {
-			$countdown.innerHTML = zeroPad(minutes, 2) + ":" + zeroPad(seconds, 2);
-		// } else {
-// 			$countdown.innerHTML = zeroPad(initialMinutes-minutes-1, 2) + ":" + zeroPad(initialSeconds-seconds+59, 2);
-// 		}
+		$countdown.innerHTML = zeroPad(minutes, 2) + ":" + zeroPad(seconds, 2);
 		$countdownContainer.style.backgroundColor = "rgba(255, 0, 0, " + (secondsElapsed / totalSeconds) * (secondsElapsed / totalSeconds) + ")"
 
-		if (secondsElapsed / totalSeconds >= 0.8 && !warned) {
-			beep();
-			warned = true;
-		}
+		console.log("check trigger");
+		checkTrigger(secondsElapsed,totalSeconds);
 
 		if (secondsElapsed >= totalSeconds) {
-			if(!crazy){
-				beep();
-				crazy = true;
-			}
-			done = true;
 			if (!blinker) blinker = blink($countdown, 400);
-
-			// cancelCountdown();
 		}
 	}, 1000);
 }
@@ -96,8 +129,7 @@ function cancelCountdown() {
 	$timerSetupForm.style.left = 0;
 	$countdownContainer.style.left = -10000;
 	$countdown.innerHTML = "00:00";
-	warned = false;
-	crazy = false;
+	config = [];
 }
 
 function zeroPad(number, numLength) {
@@ -119,10 +151,34 @@ function blink(element, speed) {
 	}, speed)
 }
 
-function beep() {
-	console.log("beep");
-	$audio.play();
-	setTimeout(function(){$audio.pause();},5000);
+function beep(beepItem) {
+	//if never triggered, we first init the video item,
+	try{
+		// For once beep, we only trigger once
+		if(beepItem.triggered == true){
+			return;	
+		}
+
+		if(false == beepItem.triggered){
+			beepItem.video = new Audio(beepItem.location)
+		}
+
+		beepItem.triggered = true;
+
+		if(beepItem.type == "once"){
+			playBeep(beepItem);
+		}else{
+			setInterval(playBeep,beepItem.interval,beepItem);
+		}
+		
+	}catch(err){
+		console.log("play beep error"+err);
+	}
 }
 
+function playBeep(beepItem){
+		beepItem.video.play();
+	  console.log(beepItem.duration); 
+		//setTimeout(function(){beepItem.video.pause();},beepItem.duration);
+}
 
