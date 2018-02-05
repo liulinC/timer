@@ -1,0 +1,17 @@
+[
+    {
+        "name": "remind",
+        "type": "once",
+	"trigger":-30,
+        "duration": 5,
+        "location": "beep.mp3"
+    },
+    {
+        "name": "timeup",
+        "type": "repeat",
+	"trigger":0,
+        "duration": 5,
+        "interval": 10,
+	"location":"godsplan.mp3"
+    }
+]

@@ -2,8 +2,8 @@ var $timerSetupForm = document.querySelector("#timer-setup");
 var $countdownContainer = document.querySelector("#countdown");
 var $countdown = document.querySelector(".display");
 var $cancelCountdown = document.querySelector(".cancel");
-const TIME_UP_MUSIC = "fox.mp3";
-var $audio = new Audio(TIME_UP_MUSIC);
+const MILLISESSIONDS_PER_SECOND = 1000;
+
 var warned = false;
 var crazy = false;
 
@@ -30,7 +30,6 @@ function loadConfig(){
 	})
 	.done(function(data){
 			data.forEach(function(item){
-				console.log("adding item: "+item);
 				config.push(item);	
 			});
 		console.log("loading json file successed");
@@ -59,6 +58,7 @@ $timerSetupForm.onsubmit = function() {
 		$countdown.innerHTML = zeroPad(minutes, 2) + ":" + zeroPad(seconds, 2);
 	}
 	loadConfig();
+	dumpConfig();
 	
 	countDown = beginCountdown(minutes, seconds);
 	return false;
@@ -75,6 +75,21 @@ function checkTrigger(secondsElapsed,totalSeconds){
 		}
 		
 	});
+}
+
+function clearConfig(){
+	config.forEach(function(item){
+		if(item.video){
+			item.video.pause();
+		}
+		if(item.intervalRef){
+			console.log("clear interval for "+item.name);
+			clearInterval(item.intervalRef);
+		}
+	});
+
+	config = [];
+
 }
 $cancelCountdown.onclick = cancelCountdown;
 
@@ -108,13 +123,12 @@ function beginCountdown(minutes, seconds) {
 		$countdown.innerHTML = zeroPad(minutes, 2) + ":" + zeroPad(seconds, 2);
 		$countdownContainer.style.backgroundColor = "rgba(255, 0, 0, " + (secondsElapsed / totalSeconds) * (secondsElapsed / totalSeconds) + ")"
 
-		console.log("check trigger");
 		checkTrigger(secondsElapsed,totalSeconds);
 
 		if (secondsElapsed >= totalSeconds) {
 			if (!blinker) blinker = blink($countdown, 400);
 		}
-	}, 1000);
+	}, MILLISESSIONDS_PER_SECOND);
 }
 
 function cancelCountdown() {
@@ -129,7 +143,7 @@ function cancelCountdown() {
 	$timerSetupForm.style.left = 0;
 	$countdownContainer.style.left = -10000;
 	$countdown.innerHTML = "00:00";
-	config = [];
+	clearConfig();
 }
 
 function zeroPad(number, numLength) {
@@ -159,16 +173,15 @@ function beep(beepItem) {
 			return;	
 		}
 
-		if(false == beepItem.triggered){
-			beepItem.video = new Audio(beepItem.location)
-		}
+		beepItem.video = new Audio(beepItem.location)
 
 		beepItem.triggered = true;
 
 		if(beepItem.type == "once"){
 			playBeep(beepItem);
 		}else{
-			setInterval(playBeep,beepItem.interval,beepItem);
+			playBeep(beepItem);
+			beepItem.intervalRef = setInterval(function(){playBeep(beepItem)},beepItem.interval*MILLISESSIONDS_PER_SECOND);
 		}
 		
 	}catch(err){
@@ -178,7 +191,6 @@ function beep(beepItem) {
 
 function playBeep(beepItem){
 		beepItem.video.play();
-	  console.log(beepItem.duration); 
-		//setTimeout(function(){beepItem.video.pause();},beepItem.duration);
+		setTimeout(function(){beepItem.video.pause();},beepItem.duration*MILLISESSIONDS_PER_SECOND);
 }
 
