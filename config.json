@@ -11,7 +11,7 @@
         "type": "repeat",
 	"trigger":0,
         "duration": 5,
-        "interval": 10,
-	"location":"sounds/godsplan.mp3"
+        "interval": 60,
+	"location":"sounds/fox.mp3"
     }
 ]
