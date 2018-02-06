@@ -2,7 +2,7 @@
     {
         "name": "remind",
         "type": "once",
-	"trigger":-30,
+	"trigger":-60,
         "duration": 5,
         "location": "sounds/beep.mp3"
     },

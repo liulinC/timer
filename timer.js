@@ -3,6 +3,8 @@ var $countdownContainer = document.querySelector("#countdown");
 var $countdown = document.querySelector(".display");
 var $cancelCountdown = document.querySelector(".cancel");
 const MILLISESSIONDS_PER_SECOND = 1000;
+const AUDIO_PATH = "sounds/beep.mp3";
+var audio = new Audio(AUDIO_PATH);
 
 var warned = false;
 var crazy = false;
@@ -73,15 +75,12 @@ function checkTrigger(secondsElapsed,totalSeconds){
 		if(secondsElapsed >= checkTimePoint){
 			beep(item);
 		}
-		
 	});
 }
 
 function clearConfig(){
+	audio.pause();
 	config.forEach(function(item){
-		if(item.video){
-			item.video.pause();
-		}
 		if(item.intervalRef){
 			console.log("clear interval for "+item.name);
 			clearInterval(item.intervalRef);
@@ -173,7 +172,7 @@ function beep(beepItem) {
 			return;	
 		}
 
-		beepItem.video = new Audio(beepItem.location)
+//		beepItem.video = new Audio(beepItem.location)
 
 		beepItem.triggered = true;
 
@@ -190,7 +189,9 @@ function beep(beepItem) {
 }
 
 function playBeep(beepItem){
-		beepItem.video.play();
-		setTimeout(function(){beepItem.video.pause();},beepItem.duration*MILLISESSIONDS_PER_SECOND);
+		console.log("play beep");
+		audio.play();
+	//	beepItem.video.play();
+		setTimeout(function(){audio.pause();},beepItem.duration*MILLISESSIONDS_PER_SECOND);
 }
 
